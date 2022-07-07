@@ -22,13 +22,36 @@ import java.util.concurrent.CompletableFuture;
  * Both the RaftLogServer(inbound) and RaftRpcService (outbound) should implement this protocol
  */
 public interface DLedgerProtocol extends DLedgerClientProtocol {
-
+    /**
+     * 发起投票请求。
+     * @param request
+     * @return
+     * @throws Exception
+     */
     CompletableFuture<VoteResponse> vote(VoteRequest request) throws Exception;
 
+    /**
+     * Leader向从节点发送心跳包。
+     * @param request
+     * @return
+     * @throws Exception
+     */
     CompletableFuture<HeartBeatResponse> heartBeat(HeartBeatRequest request) throws Exception;
 
+    /**
+     * 拉取日志条目
+     * @param request
+     * @return
+     * @throws Exception
+     */
     CompletableFuture<PullEntriesResponse> pull(PullEntriesRequest request) throws Exception;
 
+    /**
+     * 推送日志条件
+     * @param request
+     * @return
+     * @throws Exception
+     */
     CompletableFuture<PushEntryResponse> push(PushEntryRequest request) throws Exception;
 
 }

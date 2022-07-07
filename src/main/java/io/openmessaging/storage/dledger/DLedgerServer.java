@@ -64,6 +64,9 @@ import org.apache.rocketmq.remoting.netty.NettyServerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 节点的封装类。
+ */
 public class DLedgerServer implements DLedgerProtocolHandler {
 
     private static Logger logger = LoggerFactory.getLogger(DLedgerServer.class);
@@ -178,6 +181,7 @@ public class DLedgerServer implements DLedgerProtocolHandler {
     }
 
     /**
+     * 日志请求
      * Handle the append requests:
      * 1.append the entry to local store
      * 2.submit the future to entry pusher and wait the quorum ack
@@ -190,19 +194,23 @@ public class DLedgerServer implements DLedgerProtocolHandler {
     @Override
     public CompletableFuture<AppendEntryResponse> handleAppend(AppendEntryRequest request) throws IOException {
         try {
+            //如果请求的节点 ID 不是当前处理节点，
             PreConditions.check(memberState.getSelfId().equals(request.getRemoteId()), DLedgerResponseCode.UNKNOWN_MEMBER, "%s != %s", request.getRemoteId(), memberState.getSelfId());
+            //如果请求的集群不是当前节点所在的集群
             PreConditions.check(memberState.getGroup().equals(request.getGroup()), DLedgerResponseCode.UNKNOWN_GROUP, "%s != %s", request.getGroup(), memberState.getGroup());
+            //如果当前节点不是主节点，
             PreConditions.check(memberState.isLeader(), DLedgerResponseCode.NOT_LEADER);
+            //受让人不能为空
             PreConditions.check(memberState.getTransferee() == null, DLedgerResponseCode.LEADER_TRANSFERRING);
             long currTerm = memberState.currTerm();
-            if (dLedgerEntryPusher.isPendingFull(currTerm)) {
+            if (dLedgerEntryPusher.isPendingFull(currTerm)) {//如果 dLedgerEntryPusher 的 push 队列已满，则返回追加一次，
                 AppendEntryResponse appendEntryResponse = new AppendEntryResponse();
                 appendEntryResponse.setGroup(memberState.getGroup());
                 appendEntryResponse.setCode(DLedgerResponseCode.LEADER_PENDING_FULL.getCode());
                 appendEntryResponse.setTerm(currTerm);
                 appendEntryResponse.setLeaderId(memberState.getSelfId());
                 return AppendFuture.newCompletedFuture(-1, appendEntryResponse);
-            } else {
+            } else {//追加消息到 Leader 服务器，并向从节点广播，在指定时间内如果未收到从节点的确认，则认为追加失败。
                 if (request instanceof BatchAppendEntryRequest) {
                     BatchAppendEntryRequest batchRequest = (BatchAppendEntryRequest) request;
                     if (batchRequest.getBatchMsgs() != null && batchRequest.getBatchMsgs().size() != 0) {
@@ -364,6 +372,9 @@ public class DLedgerServer implements DLedgerProtocolHandler {
 
     }
 
+    /**
+     * 主节点检查
+     */
     private void checkPreferredLeader() {
         if (!memberState.isLeader()) {
             return;
@@ -390,7 +401,9 @@ public class DLedgerServer implements DLedgerProtocolHandler {
                 logger.warn("preferredLeaderId = {} is not a peer member", preferredLeaderId);
                 continue;
             }
-
+            /**
+             * 删除不在线的节点
+             */
             if (!memberState.getPeersLiveTable().containsKey(preferredLeaderId) ||
                 memberState.getPeersLiveTable().get(preferredLeaderId) == Boolean.FALSE.booleanValue()) {
                 it.remove();
@@ -417,6 +430,7 @@ public class DLedgerServer implements DLedgerProtocolHandler {
                 preferredLeaderId = peerId;
             }
         }
+        //落后索引 最小，并被决定为受让者。
         logger.info("preferredLeaderId = {}, which has the smallest fall behind index = {} and is decided to be transferee.", preferredLeaderId, minFallBehind);
 
         if (minFallBehind < dLedgerConfig.getMaxLeadershipTransferWaitIndex()) {

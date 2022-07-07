@@ -25,7 +25,7 @@
         <Logger name="RocketmqRemoting" level="off" additivity="false">
             <AppenderRef ref="stdout"/>
         </Logger>
-        <Root level="off">
+        <Root level="debug">
             <AppenderRef ref="stdout"/>
         </Root>
     </Loggers>

@@ -32,6 +32,9 @@ import static io.openmessaging.storage.dledger.MemberState.Role.CANDIDATE;
 import static io.openmessaging.storage.dledger.MemberState.Role.FOLLOWER;
 import static io.openmessaging.storage.dledger.MemberState.Role.LEADER;
 
+/**
+ * 节点状态机，即raft协议中的follower、candidate、leader三种状态的状态机实现。
+ */
 public class MemberState {
 
     public static final String TERM_PERSIST_FILE = "currterm";
@@ -206,6 +209,11 @@ public class MemberState {
         return role == CANDIDATE;
     }
 
+    /**
+     * 票数是否过半
+     * @param num
+     * @return
+     */
     public boolean isQuorum(int num) {
         return num >= ((peerSize() / 2) + 1);
     }
@@ -255,8 +263,40 @@ public class MemberState {
 
     public enum Role {
         UNKNOWN,
+        /**
+         * 候选人
+         */
         CANDIDATE,
+        /**
+         * 主节点
+         */
         LEADER,
+        /**
+         * 从节点
+         */
         FOLLOWER;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("MemberState{");
+        sb.append("dLedgerConfig=").append(dLedgerConfig);
+        sb.append(", defaultLock=").append(defaultLock);
+        sb.append(", group='").append(group).append('\'');
+        sb.append(", selfId='").append(selfId).append('\'');
+        sb.append(", peers='").append(peers).append('\'');
+        sb.append(", role=").append(role);
+        sb.append(", leaderId='").append(leaderId).append('\'');
+        sb.append(", currTerm=").append(currTerm);
+        sb.append(", currVoteFor='").append(currVoteFor).append('\'');
+        sb.append(", ledgerEndIndex=").append(ledgerEndIndex);
+        sb.append(", ledgerEndTerm=").append(ledgerEndTerm);
+        sb.append(", knownMaxTermInGroup=").append(knownMaxTermInGroup);
+        sb.append(", peerMap=").append(peerMap);
+        sb.append(", peersLiveTable=").append(peersLiveTable);
+        sb.append(", transferee='").append(transferee).append('\'');
+        sb.append(", termToTakeLeadership=").append(termToTakeLeadership);
+        sb.append('}');
+        return sb.toString();
     }
 }

@@ -189,6 +189,12 @@ public class MmapFileList {
         return preAppend(len, true);
     }
 
+    /**
+     * 获取文件写的位置，若文件可用空间不足，剩余空间填满，并返回下个文件可写位置
+     * @param len
+     * @param useBlank
+     * @return
+     */
     public long preAppend(int len, boolean useBlank) {
         MmapFile mappedFile = getLastMappedFile();
         if (null == mappedFile || mappedFile.isFull()) {

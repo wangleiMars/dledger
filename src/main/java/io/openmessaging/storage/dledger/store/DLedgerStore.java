@@ -39,6 +39,10 @@ public abstract class DLedgerStore {
 
     public abstract long getLedgerEndTerm();
 
+    /**
+     * 日志复制最后index
+     * @return
+     */
     public abstract long getLedgerEndIndex();
 
     public abstract long getLedgerBeginIndex();

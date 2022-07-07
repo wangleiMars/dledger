@@ -20,8 +20,11 @@ import io.openmessaging.storage.dledger.protocol.AppendEntryRequest;
 import io.openmessaging.storage.dledger.protocol.AppendEntryResponse;
 import io.openmessaging.storage.dledger.protocol.DLedgerResponseCode;
 import io.openmessaging.storage.dledger.utils.DLedgerUtils;
+import org.apache.rocketmq.remoting.common.TlsMode;
+import org.apache.rocketmq.remoting.netty.TlsSystemConfig;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +33,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class LeaderElectorTest extends ServerTestHarness {
 
+    @Before
+    public void settlsServerMode(){
+        System.setProperty(TlsSystemConfig.TLS_SERVER_MODE, TlsMode.DISABLED.getName());
+    }
+
     @Test
     public void testSingleServer() throws Exception {
+
         String group = UUID.randomUUID().toString();
         DLedgerServer dLedgerServer = launchServer(group, String.format("n0-localhost:%d", nextPort()), "n0");
         MemberState memberState = dLedgerServer.getMemberState();
@@ -71,7 +80,7 @@ public class LeaderElectorTest extends ServerTestHarness {
         Assertions.assertEquals(2, followerNum.get());
         Assertions.assertNotNull(leaderServer);
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 1; i++) {
             long maxTerm = servers.stream().max((o1, o2) -> {
                 if (o1.getMemberState().currTerm() < o2.getMemberState().currTerm()) {
                     return -1;
@@ -81,6 +90,7 @@ public class LeaderElectorTest extends ServerTestHarness {
                     return 0;
                 }
             }).get().getMemberState().currTerm();
+            System.out.println(maxTerm);
             DLedgerServer candidate = servers.get(i % servers.size());
             candidate.getdLedgerLeaderElector().testRevote(maxTerm + 1);
             Thread.sleep(2000);

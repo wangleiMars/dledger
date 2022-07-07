@@ -20,57 +20,101 @@ import com.beust.jcommander.Parameter;
 import io.openmessaging.storage.dledger.store.file.DLedgerMmapFileStore;
 import java.io.File;
 
+/**
+ * 多副本模块相关的配置信息
+ */
 public class DLedgerConfig {
 
     public static final String MEMORY = "MEMORY";
     public static final String FILE = "FILE";
+    /**
+     * 多路分配器
+     */
     public static final String MULTI_PATH_SPLITTER = System.getProperty("dLedger.multiPath.Splitter", ",");
-
+    /**
+     * 组
+     */
     @Parameter(names = {"--group", "-g"}, description = "Group of this server")
     private String group = "default";
-
+    /**
+     * 自身id
+     */
     @Parameter(names = {"--id", "-i"}, description = "Self id of this server")
     private String selfId = "n0";
-
+    /**
+     * 集群列表
+     */
     @Parameter(names = {"--peers", "-p"}, description = "Peer info of this server")
     private String peers = "n0-localhost:20911";
-
+    /**
+     * stoer目录
+     */
     @Parameter(names = {"--store-base-dir", "-s"}, description = "The base store dir of this server")
     private String storeBaseDir = File.separator + "tmp" + File.separator + "dledgerstore";
-
+    /**
+     * 只读数据存储目录
+     */
     @Parameter(names = {"--read-only-data-store-dirs"}, description = "The dirs of this server to be read only")
     private String readOnlyDataStoreDirs = null;
-
+    /**
+     * 当跟随者位于领导者后面超过该值时，它将触发油门
+     */
     @Parameter(names = {"--peer-push-throttle-point"}, description = "When the follower is behind the leader more than this value, it will trigger the throttle")
     private int peerPushThrottlePoint = 300 * 1024 * 1024;
-
+    /**
+     * 推送配额
+     */
     @Parameter(names = {"--peer-push-quotas"}, description = "The quotas of the pusher")
     private int peerPushQuota = 20 * 1024 * 1024;
 
     private String storeType = FILE; //FILE, MEMORY
     private String dataStorePath;
-
+    /**
+     * 最大挂起请求数
+     */
     private int maxPendingRequestsNum = 10000;
-
+    /**
+     * 最大等待ack时间
+     */
     private int maxWaitAckTimeMs = 2500;
-
+    /**
+     * 最大推送超时时间
+     */
     private int maxPushTimeOutMs = 1000;
 
     private boolean enableLeaderElector = true;
-
+    /**
+     * 心跳时间间隔
+     */
     private int heartBeatTimeIntervalMs = 2000;
-
+    /**
+     * 最大心跳泄漏
+     */
     private int maxHeartBeatLeak = 3;
-
+    /**
+     * 最小投票间隔
+     */
     private int minVoteIntervalMs = 300;
+    /**
+     * 最大投票间隔
+     */
     private int maxVoteIntervalMs = 1000;
-
+    /**
+     * 文件保留时间
+     */
     private int fileReservedHours = 72;
     private String deleteWhen = "04";
-
+    /**
+     * 磁盘空间比率检查已过期
+     */
     private float diskSpaceRatioToCheckExpired = Float.parseFloat(System.getProperty("dledger.disk.ratio.check", "0.70"));
+    /**
+     * 磁盘空间比强制清理
+     */
     private float diskSpaceRatioToForceClean = Float.parseFloat(System.getProperty("dledger.disk.ratio.clean", "0.85"));
-
+    /**
+     * 磁盘强制清理
+     */
     private boolean enableDiskForceClean = true;
 
     private long flushFileInterval = 10;
@@ -78,12 +122,18 @@ public class DLedgerConfig {
     private long checkPointInterval = 3000;
 
     private int mappedFileSizeForEntryData = 1024 * 1024 * 1024;
+    /**
+     * 条目索引的映射文件大小
+     */
     private int mappedFileSizeForEntryIndex = DLedgerMmapFileStore.INDEX_UNIT_SIZE * 5 * 1024 * 1024;
 
     private boolean enablePushToFollower = true;
 
     @Parameter(names = {"--preferred-leader-id"}, description = "Preferred LeaderId")
     private String preferredLeaderIds;
+    /**
+     * 最大领导力转移等待指数
+     */
     private long maxLeadershipTransferWaitIndex = 1000;
     private int minTakeLeadershipVoteIntervalMs =  30;
     private int maxTakeLeadershipVoteIntervalMs =  100;
